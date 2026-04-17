@@ -40,6 +40,7 @@ export default function Home() {
   const [currentRoomId, setCurrentRoomId] = useState("room1");
   const [rooms, setRooms] = useState<Room[]>([]);
   const [users, setUsers] = useState<any[]>([]);
+  const [showUserModal, setShowUserModal] = useState(false);
   const myUserId = session?.user?.id;
 
   const bottomRef = useRef<HTMLDivElement | null>(null);
@@ -310,7 +311,50 @@ export default function Home() {
       <div
         className={`${currentRoomId ? "hidden md:block" : "block"} w-full md:w-1/4 bg-white border-r overflow-y-auto`}
       >
-        <h2 className="p-4 font-bold border-b">トーク</h2>
+        <div className="p-4 font-bold border-b flex justify-between items-center">
+          <span>トーク</span>
+
+          {/* スマホだけ表示 */}
+          <button
+            onClick={() => setShowUserModal(true)}
+            className="md:hidden text-xl font-bold"
+          >
+            ＋
+          </button>
+        </div>
+        {showUserModal && (
+          <div
+            className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+            onClick={() => setShowUserModal(false)}
+          >
+            <div
+              className="bg-white w-[90%] max-h-[70%] rounded-lg overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* ヘッダー */}
+              <div className="p-4 border-b flex justify-between">
+                <span className="font-bold">ユーザー選択</span>
+                <button onClick={() => setShowUserModal(false)}>✕</button>
+              </div>
+
+              {/* ユーザー一覧 */}
+              {users
+                .filter((u) => u.id !== myUserId)
+                .map((user) => (
+                  <div
+                    key={user.id}
+                    onClick={() => {
+                      startDM(user.id);
+                      setShowUserModal(false);
+                    }}
+                    className="p-4 border-b cursor-pointer hover:bg-gray-100"
+                  >
+                    {user.name}
+                  </div>
+                ))}
+            </div>
+          </div>
+        )}
         {rooms.length === 0 && (
           <div className="p-6 text-center text-gray-400">
             トークがありません
