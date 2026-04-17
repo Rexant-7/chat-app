@@ -42,6 +42,7 @@ export default function Home() {
   const [users, setUsers] = useState<any[]>([]);
   const [showUserModal, setShowUserModal] = useState(false);
   const [friendIds, setFriendIds] = useState<string[]>([]);
+  const [allUsers, setAllUsers] = useState<any[]>([]);
   const myUserId = session?.user?.id;
 
   const bottomRef = useRef<HTMLDivElement | null>(null);
@@ -73,6 +74,15 @@ export default function Home() {
 
   //   setUsers(data);
   // };
+
+  // ======================
+  // 全ユーザー取得
+  // ======================
+  const fetchAllUsers = async () => {
+    const res = await fetch("/api/users");
+    const data = await res.json();
+    setAllUsers(data);
+  };
 
   // ======================
   // ルーム取得
@@ -132,6 +142,7 @@ export default function Home() {
       }),
     });
     setFriendIds((prev) => [...prev, friendId]);
+    fetchFriends();
     alert("追加した！");
   };
 
@@ -239,7 +250,10 @@ export default function Home() {
   //   fetchRooms();
   //   fetchUsers();
   // }, [myUserId]);
-
+  const openUserModal = () => {
+    setShowUserModal(true);
+    fetchAllUsers();
+  };
   useEffect(() => {
     if (!myUserId) return;
     fetchRooms();
@@ -332,7 +346,9 @@ export default function Home() {
       {/* ===== ユーザー一覧 ===== */}
       <div className="hidden md:block w-1/4 bg-white border-r overflow-y-auto">
         <h2 className="p-4 font-bold border-b">ユーザー</h2>
-
+        <button onClick={openUserModal} className="text-xl font-bold">
+          ＋
+        </button>
         {users
           .filter((u) => u.id !== myUserId)
           .map((user) => {
@@ -386,25 +402,36 @@ export default function Home() {
             >
               {/* ヘッダー */}
               <div className="p-4 border-b flex justify-between">
-                <span className="font-bold">ユーザー選択</span>
+                <span className="font-bold">ユーザー追加</span>
                 <button onClick={() => setShowUserModal(false)}>✕</button>
               </div>
 
               {/* ユーザー一覧 */}
-              {users
+              {allUsers
                 .filter((u) => u.id !== myUserId)
-                .map((user) => (
-                  <div
-                    key={user.id}
-                    onClick={() => {
-                      startDM(user.id);
-                      setShowUserModal(false);
-                    }}
-                    className="p-4 border-b cursor-pointer hover:bg-gray-100"
-                  >
-                    {user.name}
-                  </div>
-                ))}
+                .map((user) => {
+                  const isFriend = friendIds.includes(user.id);
+
+                  return (
+                    <div
+                      key={user.id}
+                      className="flex justify-between p-4 border-b"
+                    >
+                      <span>{user.name}</span>
+
+                      {isFriend ? (
+                        <span className="text-gray-400 text-sm">追加済み</span>
+                      ) : (
+                        <button
+                          onClick={() => addFriend(user.id)}
+                          className="bg-blue-500 text-white px-3 py-1 rounded"
+                        >
+                          追加
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
             </div>
           </div>
         )}
