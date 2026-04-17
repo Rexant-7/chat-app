@@ -206,7 +206,6 @@ export default function Home() {
     const savedMsg = await res.json();
     socket.emit("send_message", savedMsg);
     setContent("");
-    fetchMessages();
   };
 
   // ======================
@@ -254,12 +253,20 @@ export default function Home() {
     setShowUserModal(true);
     fetchAllUsers();
   };
+  // 初回だけ
   useEffect(() => {
     if (!myUserId) return;
+
     fetchRooms();
-    fetchMessages();
     fetchFriends();
-  }, [currentRoomId, myUserId]);
+  }, [myUserId]);
+
+  // ルーム変わったときだけ
+  useEffect(() => {
+    if (!currentRoomId || !myUserId) return;
+
+    fetchMessages();
+  }, [currentRoomId]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "auto" });
