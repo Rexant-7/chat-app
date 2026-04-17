@@ -67,12 +67,12 @@ export default function Home() {
   // ======================
   // ユーザー取得
   // ======================
-  const fetchUsers = async () => {
-    const res = await fetch("/api/users");
-    const data = await res.json();
+  // const fetchUsers = async () => {
+  //   const res = await fetch("/api/users");
+  //   const data = await res.json();
 
-    setUsers(data);
-  };
+  //   setUsers(data);
+  // };
 
   // ======================
   // ルーム取得
@@ -234,15 +234,17 @@ export default function Home() {
   // ======================
   // 初期 & リアルタイム
   // ======================
-  useEffect(() => {
-    if (!myUserId) return;
-    fetchRooms();
-    fetchUsers();
-  }, [myUserId]);
+  // useEffect(() => {
+  //   if (!myUserId) return;
+  //   fetchRooms();
+  //   fetchUsers();
+  // }, [myUserId]);
 
   useEffect(() => {
     if (!myUserId) return;
+    fetchRooms();
     fetchMessages();
+    fetchFriends();
   }, [currentRoomId, myUserId]);
 
   useEffect(() => {
