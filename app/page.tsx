@@ -41,6 +41,7 @@ export default function Home() {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [showUserModal, setShowUserModal] = useState(false);
+  const [friendIds, setFriendIds] = useState<string[]>([]);
   const myUserId = session?.user?.id;
 
   const bottomRef = useRef<HTMLDivElement | null>(null);
@@ -96,6 +97,42 @@ export default function Home() {
     if (data.length > 0 && !currentRoomId) {
       setCurrentRoomId(data[0].id);
     }
+  };
+
+  // ======================
+  // 友達一覧判定
+  // ======================
+  const fetchFriends = async () => {
+    if (!myUserId) return;
+
+    const res = await fetch(`/api/friends/list?userId=${myUserId}`);
+    const data = await res.json();
+
+    // 友達一覧（表示用）
+    setUsers(data.map((f: any) => f.friend));
+
+    // 👇 これ追加（判定用）
+    setFriendIds(data.map((f: any) => f.friendId));
+  };
+
+  // ======================
+  // 友達追加
+  // ======================
+  const addFriend = async (friendId: string) => {
+    if (!myUserId) return;
+
+    await fetch("/api/friends", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        userId: myUserId,
+        friendId,
+      }),
+    });
+    setFriendIds((prev) => [...prev, friendId]);
+    alert("追加した！");
   };
 
   // ======================
@@ -296,15 +333,29 @@ export default function Home() {
 
         {users
           .filter((u) => u.id !== myUserId)
-          .map((user) => (
-            <div
-              key={user.id}
-              onClick={() => startDM(user.id)}
-              className="p-3 cursor-pointer hover:bg-gray-100 border-b"
-            >
-              {user.name}
-            </div>
-          ))}
+          .map((user) => {
+            const isFriend = friendIds.includes(user.id);
+
+            return (
+              <div
+                key={user.id}
+                className="flex justify-between items-center p-3 border-b"
+              >
+                <span>{user.name}</span>
+
+                {isFriend ? (
+                  <span className="text-sm text-gray-400">追加済み</span>
+                ) : (
+                  <button
+                    onClick={() => addFriend(user.id)}
+                    className="text-sm bg-blue-500 text-white px-3 py-1 rounded"
+                  >
+                    追加
+                  </button>
+                )}
+              </div>
+            );
+          })}
       </div>
 
       {/* ===== トーク一覧 ===== */}

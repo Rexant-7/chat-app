@@ -8,8 +8,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
@@ -20,8 +20,10 @@ model User {
   image     String?
   createdAt DateTime @default(now())
 
-  messages  Message[]
-  rooms     UserRoom[]
+  messages Message[]
+  rooms    UserRoom[]
+  friends  Friend[]   @relation("UserFriends")
+  friendOf Friend[]   @relation("FriendUsers")
 }
 
 model Room {
@@ -29,8 +31,8 @@ model Room {
   name      String
   createdAt DateTime @default(now())
 
-  messages  Message[]
-  users     UserRoom[]
+  messages Message[]
+  users    UserRoom[]
 }
 
 model Message {
@@ -39,14 +41,14 @@ model Message {
   userId    String
   roomId    String
   createdAt DateTime @default(now())
-  isRead    Boolean @default(false)
+  isRead    Boolean  @default(false)
 
   user User @relation(fields: [userId], references: [id])
   room Room @relation(fields: [roomId], references: [id])
 }
 
 model UserRoom {
-  id     String @id @default(uuid())
+  id String @id @default(uuid())
 
   userId String
   roomId String
@@ -55,4 +57,16 @@ model UserRoom {
   room Room @relation(fields: [roomId], references: [id])
 
   @@unique([userId, roomId])
+}
+
+model Friend {
+  id        String   @id @default(uuid())
+  userId    String
+  friendId  String
+  createdAt DateTime @default(now())
+
+  user   User @relation("UserFriends", fields: [userId], references: [id])
+  friend User @relation("FriendUsers", fields: [friendId], references: [id])
+
+  @@unique([userId, friendId])
 }
